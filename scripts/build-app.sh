@@ -6,7 +6,7 @@ BUILD_DIR="$ROOT_DIR/build"
 APP_NAME="MicRouter"
 APP_BUNDLE="$BUILD_DIR/${APP_NAME}.app"
 BUNDLE_ID="com.microuter.app"
-VERSION="${VERSION:-1.2.3}"
+VERSION="${VERSION:-1.2.4}"
 VERSION="${VERSION#v}"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
