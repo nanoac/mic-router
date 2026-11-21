@@ -1,0 +1,41 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build MicRouter.app and CLI
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          make all
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent build/MicRouter.app dist/MicRouter-app-arm64.zip
+          zip -j dist/mic-router-cli-arm64.zip build/mic-router
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MicRouter-macOS
+          path: dist/*.zip
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/MicRouter-app-arm64.zip
+            dist/mic-router-cli-arm64.zip
