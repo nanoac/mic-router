@@ -7,6 +7,13 @@ final class DraggableAppIconView: NSView, NSDraggingSource {
     private let iconView = NSImageView()
     private let captionLabel = NSTextField(labelWithString: "MicRouter.app")
 
+    private func resolvedAppIcon() -> NSImage {
+        if let bundleIcon = NSImage(named: "AppIcon") {
+            return bundleIcon
+        }
+        return NSWorkspace.shared.icon(forFile: appURL.path)
+    }
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
@@ -15,7 +22,7 @@ final class DraggableAppIconView: NSView, NSDraggingSource {
         layer?.borderColor = NSColor.separatorColor.cgColor
         layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
 
-        let icon = NSWorkspace.shared.icon(forFile: appURL.path)
+        let icon = resolvedAppIcon()
         icon.size = NSSize(width: 56, height: 56)
         iconView.image = icon
         iconView.imageScaling = .scaleProportionallyUpOrDown
@@ -53,7 +60,7 @@ final class DraggableAppIconView: NSView, NSDraggingSource {
 
     override func mouseDragged(with event: NSEvent) {
         let item = NSDraggingItem(pasteboardWriter: appURL as NSURL)
-        let icon = NSWorkspace.shared.icon(forFile: appURL.path)
+        let icon = resolvedAppIcon()
         icon.size = NSSize(width: 56, height: 56)
         let frame = NSRect(x: (bounds.width - 56) / 2, y: (bounds.height - 56) / 2, width: 56, height: 56)
         item.setDraggingFrame(frame, contents: icon)
@@ -84,7 +91,7 @@ final class PermissionWindowController: NSWindowController {
 
     init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 470, height: 350),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 375),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -166,7 +173,7 @@ final class PermissionWindowController: NSWindowController {
 
         dragHintLabel.font = .systemFont(ofSize: 12)
         dragHintLabel.textColor = .secondaryLabelColor
-        dragHintLabel.maximumNumberOfLines = 5
+        dragHintLabel.maximumNumberOfLines = 7
 
         let cardTextStack = NSStackView(views: [dragTitleLabel, dragHintLabel])
         cardTextStack.orientation = .vertical

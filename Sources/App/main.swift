@@ -519,6 +519,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openInputMonitoringSettings() {
+        // Clear any stale ad-hoc TCC entry from an older version before re-registering.
+        if !RemoteHIDMonitor.hasInputMonitoringPermission,
+           let bundleID = Bundle.main.bundleIdentifier {
+            let reset = Process()
+            reset.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+            reset.arguments = ["reset", "ListenEvent", bundleID]
+            try? reset.run()
+            reset.waitUntilExit()
+            FileLogger.shared.log("Reset stale ListenEvent TCC entry for \(bundleID)")
+        }
+
         _ = RemoteHIDMonitor.requestInputMonitoringPermission()
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
             NSWorkspace.shared.open(url)
