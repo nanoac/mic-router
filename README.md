@@ -33,15 +33,34 @@
 
 ### 1. 菜单栏 App 模式（推荐）
 
+#### 方式 A：通过 Homebrew 一键安装（推荐）
+
+```bash
+brew install --cask nanoac/tap/mic-router
+open /Applications/MicRouter.app
+```
+
+> 提示：当前免费开源版使用本地 ad-hoc 签名（未公证），如首次打开被 Gatekeeper 拦截，可在「系统设置 → 隐私与安全性」点击“仍要打开”，或在安装时加上 `--no-quarantine`。
+
+#### 方式 B：从源码构建安装
+
 ```bash
 make install-app
 open /Applications/MicRouter.app
 ```
 
-首次启动时，按提示在 **系统设置 → 隐私与安全性 → 输入监控** 中勾选 `MicRouter` 即可生效。
+首次启动时会自动弹出三步权限引导窗口，点击 **「打开『输入监控』设置」** 开启 `MicRouter` 开关并按提示「退出并重新打开」即可生效。
 
 - **隐藏菜单栏图标**：点击菜单栏图标 →「隐藏菜单栏图标…」。隐藏后程序继续在后台静默运行。
 - **重新显示图标**：在 Spotlight / Raycast 或 `/Applications` 中再次打开 `MicRouter` 即可恢复图标并弹出菜单。
+
+### 为什么需要「输入监控（Input Monitoring）」权限？
+
+这是 macOS 系统的隐私机制要求，很多用户看到“输入监控”会担心键盘隐私，这里透明说明边界：
+
+1. **为什么必须申请**：小米蓝牙语音遥控器 2 Pro 在 macOS 中被系统识别为 **蓝牙 HID 键盘类外设**（语音键发送 HID `F5` / `usage 0x3E`）。macOS 强制要求后台进程持有「输入监控」权限才能通过 `IOHIDManager` 读取该按键事件，从而在微信输入法开麦前（毫秒级）切好系统默认麦克风。
+2. **绝不监听你的电脑键盘**：在 [`Sources/Core/RemoteHIDMonitor.swift`](Sources/Core/RemoteHIDMonitor.swift) 中，设备匹配严格限定为 `VendorID = 0x2717`、`ProductID = 0x32B8`（仅小米遥控器），只处理语音键的按下/松开状态，完全不打开也不读取电脑键盘。
+3. **100% 开源可审计**：纯原生 Swift 编写，零第三方依赖、不录音、不联网、不收集任何数据。
 
 ### 2. 极客 CLI 模式
 

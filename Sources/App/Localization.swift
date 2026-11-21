@@ -91,6 +91,10 @@ enum L10nKey {
     case permRelaunch
     case permWaitingStatus
     case permGrantedStatus
+    case permWhyToggleClosed
+    case permWhyToggleOpen
+    case permWhyBody
+    case permViewSourceLink
     case permPrivacyFootnote
 }
 
@@ -158,6 +162,10 @@ final class L10n {
             .permRelaunch:          "手动重启",
             .permWaitingStatus:     "等待授权中…",
             .permGrantedStatus:     "✅ 授权成功！正在连接…",
+            .permWhyToggleClosed:   "为什么需要「输入监控」权限？▸",
+            .permWhyToggleOpen:     "为什么需要「输入监控」权限？▾",
+            .permWhyBody:           "• 系统机制：小米遥控器在 macOS 中被识别为蓝牙 HID 外设，系统强制要求「输入监控」才能读取语音键按下事件。\n• 硬件隔离：底层严格按 VID/PID (0x2717:0x32B8) 过滤，只监听遥控器这一个设备，完全不接触电脑键盘。\n• 开源可验：纯原生 Swift、零第三方依赖、不录音不联网，代码完全公开可审计。",
+            .permViewSourceLink:    "在 GitHub 查看 HID 监听源码 →",
             .permPrivacyFootnote:   "",
         ],
         .zhHant: [
@@ -211,6 +219,10 @@ final class L10n {
             .permRelaunch:          "手動重啟",
             .permWaitingStatus:     "等待授權中…",
             .permGrantedStatus:     "✅ 授權成功！正在連線…",
+            .permWhyToggleClosed:   "為什麼需要「輸入監控」權限？▸",
+            .permWhyToggleOpen:     "為什麼需要「輸入監控」權限？▾",
+            .permWhyBody:           "• 系統機制：小米遙控器在 macOS 中被識別為藍牙 HID 裝置，系統強制要求「輸入監控」才能讀取語音鍵按下事件。\n• 硬體隔離：底層嚴格依 VID/PID (0x2717:0x32B8) 過濾，只監聽遙控器這一個裝置，完全不接觸電腦鍵盤。\n• 開源可驗：純原生 Swift、零第三方相依、不錄音不連網，程式碼完全公開可審計。",
+            .permViewSourceLink:    "在 GitHub 檢視 HID 監聽原始碼 →",
             .permPrivacyFootnote:   "",
         ],
         .en: [
@@ -264,6 +276,10 @@ final class L10n {
             .permRelaunch:          "Relaunch",
             .permWaitingStatus:     "Waiting for permission…",
             .permGrantedStatus:     "✅ Granted! Connecting…",
+            .permWhyToggleClosed:   "Why is Input Monitoring needed? ▸",
+            .permWhyToggleOpen:     "Why is Input Monitoring needed? ▾",
+            .permWhyBody:           "• macOS requirement: The Xiaomi remote registers as a Bluetooth HID device, so macOS requires Input Monitoring to read its voice button.\n• Hardware-isolated: Filtered strictly by VID/PID (0x2717:0x32B8) — it only opens the remote and never touches your keyboard.\n• Open source: Pure Swift, zero dependencies, no recording or network access.",
+            .permViewSourceLink:    "Inspect RemoteHIDMonitor.swift on GitHub →",
             .permPrivacyFootnote:   "",
         ],
         .ja: [
@@ -317,6 +333,10 @@ final class L10n {
             .permRelaunch:          "再起動",
             .permWaitingStatus:     "許可を待機中…",
             .permGrantedStatus:     "✅ 許可されました！接続中…",
+            .permWhyToggleClosed:   "なぜ「入力監視」が必要ですか？ ▸",
+            .permWhyToggleOpen:     "なぜ「入力監視」が必要ですか？ ▾",
+            .permWhyBody:           "• macOS の仕様：Xiaomi リモコンは Bluetooth HID 機器として認識されるため、音声ボタンの検知に「入力監視」権限が必要です。\n• ハードウェア分離：VID/PID (0x2717:0x32B8) でリモコン単体のみを監視し、キーボード入力には一切触れません。\n• オープンソース：純粋な Swift 製・外部依存ゼロ・録音や通信も一切行いません。",
+            .permViewSourceLink:    "GitHub で HID 監視コードを確認 →",
             .permPrivacyFootnote:   "",
         ],
     ]

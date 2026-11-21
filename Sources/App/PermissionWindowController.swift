@@ -135,16 +135,24 @@ final class PermissionWindowController: NSWindowController {
     private let step1 = StepRowView(number: 1)
     private let step2 = StepRowView(number: 2)
     private let step3 = StepRowView(number: 3)
+    private let whyToggleButton = NSButton(title: "", target: nil, action: nil)
+    private let whyCardView = NSView()
+    private let whyBodyLabel = NSTextField(wrappingLabelWithString: "")
+    private let viewSourceButton = NSButton(title: "", target: nil, action: nil)
     private let openSettingsButton = NSButton(title: "", target: nil, action: nil)
     private let relaunchButton = NSButton(title: "", target: nil, action: nil)
     private let spinner = NSProgressIndicator()
     private let statusLabel = NSTextField(labelWithString: "")
 
     private var isGranted = false
+    private var isWhyExpanded = false
+
+    private let collapsedHeight: CGFloat = 345
+    private let expandedHeight: CGFloat = 485
 
     init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 470, height: 320),
+            contentRect: NSRect(x: 0, y: 0, width: 476, height: 345),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -189,6 +197,10 @@ final class PermissionWindowController: NSWindowController {
         step2.descLabel.stringValue = L10n.t(.permStep2Desc)
         step3.titleLabel.stringValue = L10n.t(.permStep3Title)
         step3.descLabel.stringValue = L10n.t(.permStep3Desc)
+
+        whyToggleButton.title = L10n.t(isWhyExpanded ? .permWhyToggleOpen : .permWhyToggleClosed)
+        whyBodyLabel.stringValue = L10n.t(.permWhyBody)
+        viewSourceButton.title = L10n.t(.permViewSourceLink)
 
         openSettingsButton.title = L10n.t(.permOpenSettings)
         relaunchButton.title = L10n.t(.permRelaunch)
@@ -253,6 +265,44 @@ final class PermissionWindowController: NSWindowController {
             step3.widthAnchor.constraint(equalTo: stepsStack.widthAnchor),
         ])
 
+        // Progressive-disclosure "Why is Input Monitoring needed?" section
+        whyToggleButton.isBordered = false
+        whyToggleButton.font = .systemFont(ofSize: 12, weight: .medium)
+        whyToggleButton.contentTintColor = .secondaryLabelColor
+        whyToggleButton.target = self
+        whyToggleButton.action = #selector(toggleWhySection)
+
+        whyCardView.wantsLayer = true
+        whyCardView.layer?.cornerRadius = 10
+        whyCardView.layer?.backgroundColor = NSColor.quaternaryLabelColor.withAlphaComponent(0.08).cgColor
+        whyCardView.translatesAutoresizingMaskIntoConstraints = false
+        whyCardView.isHidden = true
+
+        whyBodyLabel.font = .systemFont(ofSize: 11.5)
+        whyBodyLabel.textColor = .secondaryLabelColor
+        whyBodyLabel.maximumNumberOfLines = 8
+
+        viewSourceButton.isBordered = false
+        viewSourceButton.font = .systemFont(ofSize: 11.5, weight: .medium)
+        viewSourceButton.contentTintColor = .linkColor
+        viewSourceButton.target = self
+        viewSourceButton.action = #selector(openSourceCodeClicked)
+
+        let whyStack = NSStackView(views: [whyBodyLabel, viewSourceButton])
+        whyStack.orientation = .vertical
+        whyStack.alignment = .leading
+        whyStack.spacing = 6
+        whyStack.translatesAutoresizingMaskIntoConstraints = false
+
+        whyCardView.addSubview(whyStack)
+        NSLayoutConstraint.activate([
+            whyStack.topAnchor.constraint(equalTo: whyCardView.topAnchor, constant: 10),
+            whyStack.bottomAnchor.constraint(equalTo: whyCardView.bottomAnchor, constant: -10),
+            whyStack.leadingAnchor.constraint(equalTo: whyCardView.leadingAnchor, constant: 12),
+            whyStack.trailingAnchor.constraint(equalTo: whyCardView.trailingAnchor, constant: -12),
+            whyBodyLabel.widthAnchor.constraint(equalTo: whyStack.widthAnchor),
+        ])
+
         // Bottom bar: status on left, primary + secondary buttons on right
         spinner.style = .spinning
         spinner.controlSize = .small
@@ -283,10 +333,10 @@ final class PermissionWindowController: NSWindowController {
         footerStack.alignment = .centerY
         footerStack.spacing = 8
 
-        let rootStack = NSStackView(views: [headerStack, cardView, footerStack])
+        let rootStack = NSStackView(views: [headerStack, cardView, whyToggleButton, whyCardView, footerStack])
         rootStack.orientation = .vertical
         rootStack.alignment = .leading
-        rootStack.spacing = 16
+        rootStack.spacing = 12
         rootStack.translatesAutoresizingMaskIntoConstraints = false
 
         contentView.addSubview(rootStack)
@@ -299,11 +349,32 @@ final class PermissionWindowController: NSWindowController {
 
             headerStack.widthAnchor.constraint(equalTo: rootStack.widthAnchor),
             cardView.widthAnchor.constraint(equalTo: rootStack.widthAnchor),
+            whyCardView.widthAnchor.constraint(equalTo: rootStack.widthAnchor),
             footerStack.widthAnchor.constraint(equalTo: rootStack.widthAnchor),
         ])
     }
 
     // MARK: - Actions
+
+    @objc private func toggleWhySection() {
+        isWhyExpanded.toggle()
+        whyCardView.isHidden = !isWhyExpanded
+        whyToggleButton.title = L10n.t(isWhyExpanded ? .permWhyToggleOpen : .permWhyToggleClosed)
+
+        guard let win = window else { return }
+        let targetH = isWhyExpanded ? expandedHeight : collapsedHeight
+        var frame = win.frame
+        let delta = targetH - frame.size.height
+        frame.size.height = targetH
+        frame.origin.y -= delta
+        win.setFrame(frame, display: true, animate: true)
+    }
+
+    @objc private func openSourceCodeClicked() {
+        if let url = URL(string: "https://github.com/nanoac/mic-router/blob/main/Sources/Core/RemoteHIDMonitor.swift") {
+            NSWorkspace.shared.open(url)
+        }
+    }
 
     @objc private func openSettingsClicked() {
         onOpenSettings?()

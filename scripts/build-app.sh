@@ -6,17 +6,23 @@ BUILD_DIR="$ROOT_DIR/build"
 APP_NAME="MicRouter"
 APP_BUNDLE="$BUILD_DIR/${APP_NAME}.app"
 BUNDLE_ID="com.microuter.app"
-VERSION="${VERSION:-1.2.4}"
+VERSION="${VERSION:-1.3.0}"
 VERSION="${VERSION#v}"
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
-echo "==> Generating AppIcon.icns..."
-ICONSET_DIR="$BUILD_DIR/AppIcon.iconset"
-rm -rf "$ICONSET_DIR"
-swift "$ROOT_DIR/scripts/gen-icon.swift" "$ICONSET_DIR"
-iconutil -c icns "$ICONSET_DIR" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
-rm -rf "$ICONSET_DIR"
+if [[ -f "$ROOT_DIR/Resources/AppIcon.icns" ]]; then
+    echo "==> Copying Resources/AppIcon.icns..."
+    cp "$ROOT_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+else
+    echo "==> Generating AppIcon.icns..."
+    ICONSET_DIR="$BUILD_DIR/AppIcon.iconset"
+    rm -rf "$ICONSET_DIR"
+    swift "$ROOT_DIR/scripts/gen-icon.swift" "$ICONSET_DIR"
+    iconutil -c icns "$ICONSET_DIR" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+    rm -rf "$ICONSET_DIR"
+fi
 
 echo "==> Compiling ${APP_NAME}.app (${VERSION})..."
 swiftc -O \
@@ -67,7 +73,11 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<EOF
 </plist>
 EOF
 
-echo "==> Code signing ${APP_NAME}.app (ad-hoc with stable identifier)..."
-codesign --force --deep --sign - --identifier "$BUNDLE_ID" "$APP_BUNDLE"
+echo "==> Code signing ${APP_NAME}.app (identity: ${SIGN_IDENTITY})..."
+if [[ "$SIGN_IDENTITY" == "-" ]]; then
+    codesign --force --deep --sign - --identifier "$BUNDLE_ID" "$APP_BUNDLE"
+else
+    codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" --identifier "$BUNDLE_ID" "$APP_BUNDLE"
+fi
 
 echo "==> Built: $APP_BUNDLE"
