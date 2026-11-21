@@ -20,6 +20,7 @@
 - **双形态，共享同一套核心引擎（零第三方依赖、纯原生 Swift）**：
   - **菜单栏 App（`MicRouter.app`）**：适合日常使用。支持状态显示、暂停/恢复、目标虚拟麦切换、延迟调节、开机自启（`SMAppService`），以及**隐藏菜单栏图标**（寸土寸金的菜单栏也能干干净净；需要再次显示时，重新打开 `MicRouter` 即可）。
   - **极客 CLI 模式（`mic-router`）**：无界面、可自定义 VID/PID/Usage、延迟、超时保护，支持通过 `LaunchAgent` 后台常驻运行。
+- **多语言支持**：内置 **简体中文 / 繁體中文 / English / 日本語**，默认自动跟随系统语言，也支持在菜单栏内随时切换、即时生效。
 - **安全防卡死**：
   - 启动时若发现上次异常退出导致系统卡在虚拟麦，自动恢复到可用物理麦克风。
   - 蓝牙断连、系统休眠、单次按住超时（默认 120s）均自动恢复原麦克风。
@@ -77,6 +78,7 @@ Sources/
 │   ├── RemoteHIDMonitor.swift     # IOHIDManager 硬件按键监听与热插拔
 │   └── MicRouterEngine.swift      # 切换状态机与防卡死保护
 ├── App/
+│   ├── Localization.swift         # 多语言支持（简体中文 / 繁體中文 / English / 日本語）
 │   └── main.swift                 # 轻量原生菜单栏 App（支持隐藏图标与 SMAppService 自启）
 └── CLI/
     └── main.swift                 # 极客命令行版本

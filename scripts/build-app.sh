@@ -6,16 +6,18 @@ BUILD_DIR="$ROOT_DIR/build"
 APP_NAME="MicRouter"
 APP_BUNDLE="$BUILD_DIR/${APP_NAME}.app"
 BUNDLE_ID="com.microuter.app"
-VERSION="${VERSION:-1.0.0}"
+VERSION="${VERSION:-1.1.0}"
+VERSION="${VERSION#v}"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
-echo "==> Compiling ${APP_NAME}.app..."
+echo "==> Compiling ${APP_NAME}.app (${VERSION})..."
 swiftc -O \
     -target "$(uname -m)-apple-macos13.0" \
     "$ROOT_DIR/Sources/Core/AudioDeviceManager.swift" \
     "$ROOT_DIR/Sources/Core/RemoteHIDMonitor.swift" \
     "$ROOT_DIR/Sources/Core/MicRouterEngine.swift" \
+    "$ROOT_DIR/Sources/App/Localization.swift" \
     "$ROOT_DIR/Sources/App/main.swift" \
     -o "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 

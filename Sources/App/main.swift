@@ -2,16 +2,6 @@ import Cocoa
 import Foundation
 import ServiceManagement
 
-// MARK: - Localization Helper
-
-let isChinese: Bool = {
-    Locale.preferredLanguages.first?.lowercased().hasPrefix("zh") ?? false
-}()
-
-func L(_ zh: String, _ en: String) -> String {
-    isChinese ? zh : en
-}
-
 // MARK: - File Logger
 
 final class FileLogger {
@@ -63,6 +53,7 @@ final class AppSettings {
         static let restoreDelay = "restoreDelay"
         static let hideMenuBarIcon = "hideMenuBarIcon"
         static let didShowHideAlert = "didShowHideAlert"
+        static let appLanguage = "appLanguage"
     }
 
     var isEnabled: Bool {
@@ -98,6 +89,17 @@ final class AppSettings {
         get { defaults.bool(forKey: Key.didShowHideAlert) }
         set { defaults.set(newValue, forKey: Key.didShowHideAlert) }
     }
+
+    var appLanguage: AppLanguage {
+        get {
+            guard let raw = defaults.string(forKey: Key.appLanguage),
+                  let lang = AppLanguage(rawValue: raw) else {
+                return .system
+            }
+            return lang
+        }
+        set { defaults.set(newValue.rawValue, forKey: Key.appLanguage) }
+    }
 }
 
 // MARK: - AppDelegate
@@ -111,7 +113,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var permissionPollTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Handle CLI flags on the app binary if any
+        L10n.current = settings.appLanguage
+
         let args = CommandLine.arguments
         if args.contains("--hide-menu-bar") {
             settings.hideMenuBarIcon = true
@@ -123,7 +126,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         setupEngine()
         setupSleepObserver()
 
-        FileLogger.shared.log("MicRouter.app started (hideMenuBarIcon=\(settings.hideMenuBarIcon))")
+        FileLogger.shared.log(
+            "MicRouter.app started (lang=\(settings.appLanguage.rawValue), hideMenuBarIcon=\(settings.hideMenuBarIcon))"
+        )
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -213,16 +218,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let tooltip: String
         if !state.hasPermission {
             symbolName = "exclamationmark.triangle"
-            tooltip = L("MicRouter：需要「输入监控」权限", "MicRouter: Input Monitoring permission required")
+            tooltip = L10n.t(.tooltipNeedPermission)
         } else if !state.isEnabled {
             symbolName = "mic.slash.circle"
-            tooltip = L("MicRouter：已暂停", "MicRouter: Paused")
+            tooltip = L10n.t(.tooltipPaused)
         } else if state.isVoiceActive {
             symbolName = "mic.circle.fill"
-            tooltip = L("MicRouter：正在使用遥控器麦克风", "MicRouter: Remote mic active")
+            tooltip = L10n.t(.tooltipVoiceActive)
         } else {
             symbolName = "mic.circle"
-            tooltip = L("MicRouter：运行中", "MicRouter: Active")
+            tooltip = L10n.t(.tooltipActive)
         }
 
         if let img = NSImage(systemSymbolName: symbolName, accessibilityDescription: "MicRouter") {
@@ -239,13 +244,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         let state = engine.currentState()
-        let currentDefault = AudioDeviceManager.defaultInputDevice()?.name ?? L("无", "None")
+        let currentDefault = AudioDeviceManager.defaultInputDevice()?.name ?? L10n.t(.none)
         let resolvedRemote = AudioDeviceManager.resolveRemoteMic(overrideQuery: settings.remoteMicOverride)
 
         // 1. Permission warning if needed
         if !state.hasPermission {
             let warnItem = NSMenuItem(
-                title: L("⚠️ 需要「输入监控」权限（点击前往设置）", "⚠️ Input Monitoring Required (Open Settings)"),
+                title: L10n.t(.warnNeedPermission),
                 action: #selector(openInputMonitoringSettings),
                 keyEquivalent: ""
             )
@@ -258,16 +263,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let remoteText: String
         if state.isRemoteConnected {
             let name = state.remoteDeviceName ?? "RC003"
-            remoteText = L("遥控器：已连接（\(name)）", "Remote: Connected (\(name))")
+            remoteText = L10n.fmt(.remoteConnectedFmt, name)
         } else {
-            remoteText = L("遥控器：未连接（等待小米遥控器）", "Remote: Disconnected")
+            remoteText = L10n.t(.remoteDisconnected)
         }
         let remoteItem = NSMenuItem(title: remoteText, action: nil, keyEquivalent: "")
         remoteItem.isEnabled = false
         menu.addItem(remoteItem)
 
         let defaultItem = NSMenuItem(
-            title: L("当前默认麦：\(currentDefault)", "Default Mic: \(currentDefault)"),
+            title: L10n.fmt(.defaultMicFmt, currentDefault),
             action: nil,
             keyEquivalent: ""
         )
@@ -278,7 +283,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         // 3. Enable / Disable toggle
         let toggleItem = NSMenuItem(
-            title: L("启用自动切换", "Enable Auto Switching"),
+            title: L10n.t(.enableAutoSwitch),
             action: #selector(toggleEnabled),
             keyEquivalent: ""
         )
@@ -288,9 +293,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         // 4. Target Virtual Mic submenu
         let targetMenu = NSMenu()
-        let autoName = AudioDeviceManager.resolveRemoteMic(overrideQuery: nil)?.name ?? L("未检测到", "Not Found")
+        let autoName = AudioDeviceManager.resolveRemoteMic(overrideQuery: nil)?.name ?? L10n.t(.remoteMicNotFound)
         let autoItem = NSMenuItem(
-            title: L("自动检测（跟随 SayAll：\(autoName)）", "Auto (Follow SayAll: \(autoName))"),
+            title: L10n.fmt(.remoteMicAutoFmt, autoName),
             action: #selector(selectRemoteMic(_:)),
             keyEquivalent: ""
         )
@@ -301,7 +306,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         targetMenu.addItem(.separator())
 
         for dev in AudioDeviceManager.allInputDevices() {
-            let tag = dev.isVirtual ? L(" [虚拟]", " [Virtual]") : ""
+            let tag = dev.isVirtual ? L10n.t(.virtualTag) : ""
             let item = NSMenuItem(
                 title: "\(dev.name)\(tag)",
                 action: #selector(selectRemoteMic(_:)),
@@ -314,7 +319,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         let targetParent = NSMenuItem(
-            title: L("遥控器虚拟麦：\(resolvedRemote?.name ?? "未找到")", "Remote Mic: \(resolvedRemote?.name ?? "None")"),
+            title: L10n.fmt(.remoteMicMenuFmt, resolvedRemote?.name ?? L10n.t(.remoteMicNotFound)),
             action: nil,
             keyEquivalent: ""
         )
@@ -325,7 +330,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let delayMenu = NSMenu()
         let delays: [TimeInterval] = [0.2, 0.3, 0.5, 0.8, 1.0]
         for d in delays {
-            let suffix = (d == 0.5) ? L("（推荐）", " (Recommended)") : ""
+            let suffix = (d == 0.5) ? L10n.t(.recommendedSuffix) : ""
             let item = NSMenuItem(
                 title: String(format: "%.1fs%@", d, suffix),
                 action: #selector(selectRestoreDelay(_:)),
@@ -337,19 +342,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             delayMenu.addItem(item)
         }
         let delayParent = NSMenuItem(
-            title: String(format: L("松开恢复延迟：%.1fs", "Restore Delay: %.1fs"), settings.restoreDelay),
+            title: L10n.fmt(.restoreDelayMenuFmt, settings.restoreDelay),
             action: nil,
             keyEquivalent: ""
         )
         delayParent.submenu = delayMenu
         menu.addItem(delayParent)
 
+        // 6. Language submenu
+        let langMenu = NSMenu()
+        for lang in AppLanguage.allCases {
+            let item = NSMenuItem(
+                title: lang.nativeLabel,
+                action: #selector(selectLanguage(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = lang.rawValue
+            item.state = (settings.appLanguage == lang) ? .on : .off
+            langMenu.addItem(item)
+            if lang == .system {
+                langMenu.addItem(.separator())
+            }
+        }
+        let langParent = NSMenuItem(
+            title: L10n.t(.languageMenu),
+            action: nil,
+            keyEquivalent: ""
+        )
+        langParent.submenu = langMenu
+        menu.addItem(langParent)
+
         menu.addItem(.separator())
 
-        // 6. Launch at Login (macOS 13+ SMAppService)
+        // 7. Launch at Login (macOS 13+ SMAppService)
         if #available(macOS 13.0, *) {
             let loginItem = NSMenuItem(
-                title: L("开机自动启动", "Launch at Login"),
+                title: L10n.t(.launchAtLogin),
                 action: #selector(toggleLaunchAtLogin),
                 keyEquivalent: ""
             )
@@ -358,18 +387,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(loginItem)
         }
 
-        // 7. Hide Menu Bar Icon
+        // 8. Hide Menu Bar Icon
         let hideItem = NSMenuItem(
-            title: L("隐藏菜单栏图标…", "Hide Menu Bar Icon…"),
+            title: L10n.t(.hideMenuBarIcon),
             action: #selector(hideMenuBarIcon),
             keyEquivalent: ""
         )
         hideItem.target = self
         menu.addItem(hideItem)
 
-        // 8. Open Log
+        // 9. Open Log
         let logItem = NSMenuItem(
-            title: L("查看运行日志", "View Log"),
+            title: L10n.t(.viewLog),
             action: #selector(openLogFile),
             keyEquivalent: ""
         )
@@ -378,9 +407,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         menu.addItem(.separator())
 
-        // 9. Quit
+        // 10. Quit
         let quitItem = NSMenuItem(
-            title: L("退出 MicRouter", "Quit MicRouter"),
+            title: L10n.t(.quitApp),
             action: #selector(quitApp),
             keyEquivalent: "q"
         )
@@ -410,6 +439,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         FileLogger.shared.log("Restore delay -> \(d)s")
     }
 
+    @objc private func selectLanguage(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let lang = AppLanguage(rawValue: raw) else { return }
+        settings.appLanguage = lang
+        L10n.current = lang
+        updateStatusIcon(engine.currentState())
+        FileLogger.shared.log("Language -> \(lang.rawValue)")
+    }
+
     @available(macOS 13.0, *)
     @objc private func toggleLaunchAtLogin() {
         let service = SMAppService.mainApp
@@ -424,9 +462,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         } catch {
             FileLogger.shared.log("ERROR: Launch at login failed: \(error.localizedDescription)")
             let alert = NSAlert()
-            alert.messageText = L("无法修改开机自启设置", "Failed to update Launch at Login")
-            alert.informativeText = error.localizedDescription + "\n\n" +
-                L("请确保 MicRouter.app 已放入 /Applications 目录。", "Make sure MicRouter.app is located in /Applications.")
+            alert.messageText = L10n.t(.loginErrorTitle)
+            alert.informativeText = error.localizedDescription + "\n\n" + L10n.t(.loginErrorHint)
             alert.runModal()
         }
     }
@@ -435,13 +472,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !settings.didShowHideAlert {
             NSApp.activate(ignoringOtherApps: true)
             let alert = NSAlert()
-            alert.messageText = L("隐藏菜单栏图标？", "Hide Menu Bar Icon?")
-            alert.informativeText = L(
-                "隐藏后 MicRouter 会继续在后台静默运行。\n\n需要重新显示菜单栏图标时，只需在 Spotlight / Raycast 或「应用程序」中再次打开 MicRouter 即可。",
-                "MicRouter will continue running silently in the background.\n\nTo show the menu bar icon again, simply reopen MicRouter from Spotlight or Applications."
-            )
-            alert.addButton(withTitle: L("隐藏图标", "Hide Icon"))
-            alert.addButton(withTitle: L("取消", "Cancel"))
+            alert.messageText = L10n.t(.hideAlertTitle)
+            alert.informativeText = L10n.t(.hideAlertBody)
+            alert.addButton(withTitle: L10n.t(.hideAlertConfirm))
+            alert.addButton(withTitle: L10n.t(.cancel))
             guard alert.runModal() == .alertFirstButtonReturn else { return }
             settings.didShowHideAlert = true
         }

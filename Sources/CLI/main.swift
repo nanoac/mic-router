@@ -1,6 +1,6 @@
 import Foundation
 
-let kVersion = "1.0.0"
+let kVersion = "1.1.0"
 
 setvbuf(stdout, nil, _IOLBF, 0)
 setvbuf(stderr, nil, _IOLBF, 0)
