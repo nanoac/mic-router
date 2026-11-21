@@ -242,28 +242,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func updateStatusIcon(_ state: MicRouterState) {
         guard let button = statusItem?.button else { return }
 
-        let symbolName: String
+        let mode: StatusIconRenderer.Mode
         let tooltip: String
         if !state.hasPermission {
-            symbolName = "exclamationmark.triangle"
+            mode = .needsPermission
             tooltip = L10n.t(.tooltipNeedPermission)
         } else if !state.isEnabled {
-            symbolName = "mic.slash.circle"
+            mode = .paused
             tooltip = L10n.t(.tooltipPaused)
         } else if state.isVoiceActive {
-            symbolName = "mic.circle.fill"
+            mode = .voiceActive
             tooltip = L10n.t(.tooltipVoiceActive)
         } else {
-            symbolName = "mic.circle"
+            mode = .idle
             tooltip = L10n.t(.tooltipActive)
         }
 
-        if let img = NSImage(systemSymbolName: symbolName, accessibilityDescription: "MicRouter") {
-            img.isTemplate = true
-            button.image = img
-        } else {
-            button.title = state.isVoiceActive ? "●" : "🎙"
-        }
+        let img = StatusIconRenderer.image(for: mode)
+        img.accessibilityDescription = "MicRouter"
+        button.image = img
         button.toolTip = tooltip
     }
 
