@@ -6,10 +6,17 @@ BUILD_DIR="$ROOT_DIR/build"
 APP_NAME="MicRouter"
 APP_BUNDLE="$BUILD_DIR/${APP_NAME}.app"
 BUNDLE_ID="com.microuter.app"
-VERSION="${VERSION:-1.1.0}"
+VERSION="${VERSION:-1.2.0}"
 VERSION="${VERSION#v}"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
+
+echo "==> Generating AppIcon.icns..."
+ICONSET_DIR="$BUILD_DIR/AppIcon.iconset"
+rm -rf "$ICONSET_DIR"
+swift "$ROOT_DIR/scripts/gen-icon.swift" "$ICONSET_DIR"
+iconutil -c icns "$ICONSET_DIR" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+rm -rf "$ICONSET_DIR"
 
 echo "==> Compiling ${APP_NAME}.app (${VERSION})..."
 swiftc -O \
@@ -18,6 +25,7 @@ swiftc -O \
     "$ROOT_DIR/Sources/Core/RemoteHIDMonitor.swift" \
     "$ROOT_DIR/Sources/Core/MicRouterEngine.swift" \
     "$ROOT_DIR/Sources/App/Localization.swift" \
+    "$ROOT_DIR/Sources/App/PermissionWindowController.swift" \
     "$ROOT_DIR/Sources/App/main.swift" \
     -o "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 
@@ -32,6 +40,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<EOF
     <string>${APP_NAME}</string>
     <key>CFBundleExecutable</key>
     <string>${APP_NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleInfoDictionaryVersion</key>

@@ -111,6 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem!
     private let menu = NSMenu()
     private var permissionPollTimer: Timer?
+    private var permissionWindow: PermissionWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         L10n.current = settings.appLanguage
@@ -179,6 +180,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let started = engine.start(recoverStuckVirtualMic: true)
         if !started {
             startPermissionPolling()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.showPermissionGuide()
+            }
         }
     }
 
@@ -194,7 +198,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func startPermissionPolling() {
         permissionPollTimer?.invalidate()
-        permissionPollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+        permissionPollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self else {
                 timer.invalidate()
                 return
@@ -202,11 +206,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if RemoteHIDMonitor.hasInputMonitoringPermission {
                 if self.engine.start(recoverStuckVirtualMic: false) {
                     FileLogger.shared.log("Input Monitoring granted -> HID monitor started")
+                    self.permissionWindow?.markGrantedAndCloseSoon()
                     timer.invalidate()
                     self.permissionPollTimer = nil
                 }
             }
         }
+    }
+
+    private func showPermissionGuide() {
+        if permissionWindow == nil {
+            let vc = PermissionWindowController()
+            vc.onOpenSettings = { [weak self] in
+                self?.openInputMonitoringSettings()
+            }
+            vc.onRelaunch = { [weak self] in
+                self?.relaunchApp()
+            }
+            permissionWindow = vc
+        }
+        permissionWindow?.show()
+    }
+
+    private func relaunchApp() {
+        let appPath = Bundle.main.bundlePath
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        task.arguments = ["-n", appPath]
+        try? task.run()
+        NSApp.terminate(nil)
     }
 
     // MARK: - Icon Rendering
@@ -251,7 +279,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !state.hasPermission {
             let warnItem = NSMenuItem(
                 title: L10n.t(.warnNeedPermission),
-                action: #selector(openInputMonitoringSettings),
+                action: #selector(openPermissionGuideClicked),
                 keyEquivalent: ""
             )
             warnItem.target = self
@@ -445,6 +473,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         settings.appLanguage = lang
         L10n.current = lang
         updateStatusIcon(engine.currentState())
+        permissionWindow?.refreshTexts()
         FileLogger.shared.log("Language -> \(lang.rawValue)")
     }
 
@@ -483,6 +512,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         settings.hideMenuBarIcon = true
         statusItem.isVisible = false
         FileLogger.shared.log("Menu bar icon hidden (running in background)")
+    }
+
+    @objc private func openPermissionGuideClicked() {
+        showPermissionGuide()
     }
 
     @objc private func openInputMonitoringSettings() {
