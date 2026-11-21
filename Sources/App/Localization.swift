@@ -79,11 +79,15 @@ enum L10nKey {
     // Permission Onboarding Window
     case permWindowTitle
     case permHeading
-    case permExplanation
-    case permDragTitle
-    case permDragHint
+    case permSubtitle
+    case permStep1Title
+    case permStep1Desc
+    case permStep2Title
+    case permStep2Desc
+    case permStep3Title
+    case permStep3Desc
+    case permDragBadge
     case permOpenSettings
-    case permRevealFinder
     case permRelaunch
     case permWaitingStatus
     case permGrantedStatus
@@ -140,17 +144,21 @@ final class L10n {
             .viewLog:               "查看运行日志",
             .quitApp:               "退出 MicRouter",
 
-            .permWindowTitle:       "MicRouter 权限设置",
-            .permHeading:           "需要「输入监控」权限",
-            .permExplanation:       "小米蓝牙语音遥控器在 macOS 中被识别为蓝牙 HID 外设。MicRouter 需要此权限，才能在按下语音键的瞬间自动切换麦克风。",
-            .permDragTitle:         "开启步骤（自动添加 / 支持拖拽）",
-            .permDragHint:          "1. 点击下方「打开『输入监控』设置」，系统会自动将 MicRouter 加入列表，直接开启开关即可。\n2. 若弹出「退出并重新打开」，请放心点击，应用会自动重启并立即生效。\n3. 若列表中未出现，可直接把左侧图标拖进系统设置列表。",
+            .permWindowTitle:       "MicRouter 权限引导",
+            .permHeading:           "开启「输入监控」即可使用",
+            .permSubtitle:          "仅用于识别小米遥控器语音键，不监听键盘、不录音、不联网",
+            .permStep1Title:        "打开系统设置",
+            .permStep1Desc:         "点击下方蓝色按钮，自动添加 MicRouter",
+            .permStep2Title:        "开启 MicRouter 开关",
+            .permStep2Desc:         "若列表未出现，把左侧图标拖进去即可",
+            .permStep3Title:        "放心点「退出并重新打开」",
+            .permStep3Desc:         "系统弹窗确认后会自动重启并生效",
+            .permDragBadge:         "可拖拽",
             .permOpenSettings:      "打开「输入监控」设置",
-            .permRevealFinder:      "在 Finder 中显示",
-            .permRelaunch:          "重启生效",
-            .permWaitingStatus:     "等待授权中… 勾选后将自动检测",
-            .permGrantedStatus:     "✅ 授权成功！正在连接遥控器…",
-            .permPrivacyFootnote:   "隐私承诺：仅监听小米遥控器语音键，不监听键盘、不录音、不联网。",
+            .permRelaunch:          "手动重启",
+            .permWaitingStatus:     "等待授权中…",
+            .permGrantedStatus:     "✅ 授权成功！正在连接…",
+            .permPrivacyFootnote:   "",
         ],
         .zhHant: [
             .tooltipNeedPermission: "MicRouter：需要「輸入監控」權限",
@@ -189,17 +197,21 @@ final class L10n {
             .viewLog:               "檢視執行日誌",
             .quitApp:               "結束 MicRouter",
 
-            .permWindowTitle:       "MicRouter 權限設定",
-            .permHeading:           "需要「輸入監控」權限",
-            .permExplanation:       "小米藍牙語音遙控器在 macOS 中被識別為藍牙 HID 裝置。MicRouter 需要此權限，才能在按下語音鍵的瞬間自動切換麥克風。",
-            .permDragTitle:         "開啟步驟（自動加入 / 支援拖曳）",
-            .permDragHint:          "1. 點擊下方「開啟『輸入監控』設定」，系統會自動將 MicRouter 加入列表，直接開啟開關即可。\n2. 若彈出「結束並重新開啟」，請放心點擊，應用會自動重啟並立即生效。\n3. 若列表中未出現，可直接把左側圖示拖進系統設定列表。",
+            .permWindowTitle:       "MicRouter 權限引導",
+            .permHeading:           "開啟「輸入監控」即可使用",
+            .permSubtitle:          "僅用於識別小米遙控器語音鍵，不監聽鍵盤、不錄音、不連網",
+            .permStep1Title:        "開啟系統設定",
+            .permStep1Desc:         "點擊下方藍色按鈕，自動加入 MicRouter",
+            .permStep2Title:        "開啟 MicRouter 開關",
+            .permStep2Desc:         "若列表未出現，把左側圖示拖進去即可",
+            .permStep3Title:        "放心點「結束並重新開啟」",
+            .permStep3Desc:         "系統彈窗確認後會自動重啟並生效",
+            .permDragBadge:         "可拖曳",
             .permOpenSettings:      "開啟「輸入監控」設定",
-            .permRevealFinder:      "在 Finder 中顯示",
-            .permRelaunch:          "重新啟動生效",
-            .permWaitingStatus:     "等待授權中… 勾選後將自動偵測",
-            .permGrantedStatus:     "✅ 授權成功！正在連線遙控器…",
-            .permPrivacyFootnote:   "隱私承諾：僅監聽小米遙控器語音鍵，不監聽鍵盤、不錄音、不連網。",
+            .permRelaunch:          "手動重啟",
+            .permWaitingStatus:     "等待授權中…",
+            .permGrantedStatus:     "✅ 授權成功！正在連線…",
+            .permPrivacyFootnote:   "",
         ],
         .en: [
             .tooltipNeedPermission: "MicRouter: Input Monitoring permission required",
@@ -238,17 +250,21 @@ final class L10n {
             .viewLog:               "View Log",
             .quitApp:               "Quit MicRouter",
 
-            .permWindowTitle:       "MicRouter Permission Setup",
-            .permHeading:           "Input Monitoring Permission Required",
-            .permExplanation:       "macOS treats the Xiaomi Bluetooth Remote as a HID device. MicRouter needs Input Monitoring so it can switch microphones the instant you press the remote's voice key.",
-            .permDragTitle:         "Quick Setup (Auto-Add / Drag & Drop)",
-            .permDragHint:          "1. Click \"Open Input Monitoring\" — MicRouter will be added to the list automatically; just toggle it ON.\n2. If macOS asks to \"Quit & Reopen\", go ahead and click it — MicRouter will restart and connect right away.\n3. If it isn't listed, drag the icon on the left directly into System Settings.",
+            .permWindowTitle:       "MicRouter Setup",
+            .permHeading:           "Enable Input Monitoring",
+            .permSubtitle:          "Only listens to the Xiaomi remote voice key. No keylogging or network.",
+            .permStep1Title:        "Open System Settings",
+            .permStep1Desc:         "Click the button below to auto-add MicRouter",
+            .permStep2Title:        "Turn ON MicRouter",
+            .permStep2Desc:         "Not listed? Drag the icon on the left into the list",
+            .permStep3Title:        "Click \"Quit & Reopen\"",
+            .permStep3Desc:         "Safe to confirm — the app restarts automatically",
+            .permDragBadge:         "Drag me",
             .permOpenSettings:      "Open Input Monitoring",
-            .permRevealFinder:      "Reveal in Finder",
             .permRelaunch:          "Relaunch",
-            .permWaitingStatus:     "Waiting for permission… auto-detecting",
-            .permGrantedStatus:     "✅ Permission granted! Connecting remote…",
-            .permPrivacyFootnote:   "Privacy: Only listens to the Xiaomi remote voice button. Never logs keys, records audio, or accesses the network.",
+            .permWaitingStatus:     "Waiting for permission…",
+            .permGrantedStatus:     "✅ Granted! Connecting…",
+            .permPrivacyFootnote:   "",
         ],
         .ja: [
             .tooltipNeedPermission: "MicRouter：入力監視の権限が必要です",
@@ -287,17 +303,21 @@ final class L10n {
             .viewLog:               "ログを表示",
             .quitApp:               "MicRouter を終了",
 
-            .permWindowTitle:       "MicRouter 権限の設定",
-            .permHeading:           "「入力監視」の権限が必要です",
-            .permExplanation:       "Xiaomi Bluetooth リモコンは macOS 上で HID デバイスとして認識されます。音声ボタンを押した瞬間にマイクを切り替えるため、入力監視の権限が必要です。",
-            .permDragTitle:         "設定手順（自動追加 / ドラッグ対応）",
-            .permDragHint:          "1. 下の「『入力監視』設定を開く」を押すと一覧に自動追加されるので、スイッチをオンにしてください。\n2. 「終了して再度開く」と表示されたら、そのまま押して大丈夫です。自動で再起動して有効になります。\n3. 一覧に出ない場合は、左のアイコンをそのまま設定画面へドラッグしてください。",
+            .permWindowTitle:       "MicRouter セットアップ",
+            .permHeading:           "「入力監視」をオンにする",
+            .permSubtitle:          "リモコンの音声ボタンのみ監視。キー記録・録音・通信なし",
+            .permStep1Title:        "システム設定を開く",
+            .permStep1Desc:         "下のボタンで MicRouter を一覧に自動追加",
+            .permStep2Title:        "MicRouter をオンにする",
+            .permStep2Desc:         "一覧にない場合は左のアイコンをドラッグ",
+            .permStep3Title:        "「終了して再度開く」を押す",
+            .permStep3Desc:         "自動で再起動し、すぐ使えるようになります",
+            .permDragBadge:         "ドラッグ可",
             .permOpenSettings:      "「入力監視」設定を開く",
-            .permRevealFinder:      "Finder で表示",
-            .permRelaunch:          "再起動して反映",
-            .permWaitingStatus:     "権限の許可を待機中… 自動検出します",
-            .permGrantedStatus:     "✅ 権限が確認されました！接続しています…",
-            .permPrivacyFootnote:   "プライバシー：リモコンの音声ボタンのみ監視。キーボード入力・録音・通信は一切行いません。",
+            .permRelaunch:          "再起動",
+            .permWaitingStatus:     "許可を待機中…",
+            .permGrantedStatus:     "✅ 許可されました！接続中…",
+            .permPrivacyFootnote:   "",
         ],
     ]
 }
