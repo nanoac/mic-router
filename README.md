@@ -33,14 +33,26 @@
 
 ### 1. 菜单栏 App 模式（推荐）
 
-#### 方式 A：通过 Homebrew 一键安装（推荐）
+#### 方式 A：通过 Homebrew 一键安装与管理（推荐）
 
 ```bash
+# 首次使用可先信任个人 Tap（新版 Homebrew 如提示 untrusted）
+brew trust nanoac/tap
+
+# 安装（如需跳过首次 Gatekeeper 提示，可加 --no-quarantine）
 brew install --cask nanoac/tap/mic-router
 open /Applications/MicRouter.app
+
+# 升级 / 重装修复
+brew upgrade --cask nanoac/tap/mic-router
+brew reinstall --cask nanoac/tap/mic-router
+
+# 卸载（自动退出正在运行的进程；加 --zap 可一并清理偏好设置与日志）
+brew uninstall --cask nanoac/tap/mic-router
+brew uninstall --cask --zap nanoac/tap/mic-router
 ```
 
-> 提示：当前免费开源版使用本地 ad-hoc 签名（未公证），如首次打开被 Gatekeeper 拦截，可在「系统设置 → 隐私与安全性」点击“仍要打开”，或在安装时加上 `--no-quarantine`。
+> 提示：彻底卸载（`--zap`）后，如需连同系统「输入监控」里的授权记录一起清掉，可执行 `tccutil reset ListenEvent com.microuter.app`。
 
 #### 方式 B：从源码构建安装
 
@@ -63,6 +75,17 @@ open /Applications/MicRouter.app
 3. **100% 开源可审计**：纯原生 Swift 编写，零第三方依赖、不录音、不联网、不收集任何数据。
 
 ### 2. 极客 CLI 模式
+
+也可以通过 Homebrew 直接安装并用 `brew services` 托管后台常驻：
+
+```bash
+brew install nanoac/tap/mic-router
+brew services start nanoac/tap/mic-router    # 开机自启
+brew services restart nanoac/tap/mic-router  # 重启修复
+brew services stop nanoac/tap/mic-router     # 停止
+```
+
+或从源码编译运行：
 
 ```bash
 make cli
